@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 660" width="980" height="660">
+
+<style>
+  .bg    { fill:#f7f8fa; }
+  .title { font:700 22px 'Helvetica Neue',Arial,sans-serif; fill:#11161d; }
+  .sub   { font:400 13px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .nameU { font:700 15px 'Helvetica Neue',Arial,sans-serif; fill:#ffffff; }
+  .name  { font:700 15px 'Helvetica Neue',Arial,sans-serif; fill:#11161d; }
+  .role  { font:400 12px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .tool  { font:400 11.5px 'Menlo',monospace; fill:#3d4854; }
+  .edge  { font:600 11px 'Helvetica Neue',Arial,sans-serif; fill:#7a5cff; }
+  .note  { font:400 12px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .lvl   { font:700 11px 'Helvetica Neue',Arial,sans-serif; fill:#98a2b0; letter-spacing:1px; }
+  .box   { fill:#ffffff; stroke:#d6dbe3; stroke-width:1.5; }
+  .boxU  { fill:#11161d; stroke:#11161d; }
+  .boxO  { fill:#efeaff; stroke:#7a5cff; stroke-width:2; }
+  .boxM  { fill:#e8f2ff; stroke:#2f7fe0; stroke-width:1.8; }
+  .boxS  { fill:#ffffff; stroke:#98a2b0; stroke-width:1.5; }
+  .boxT  { fill:#f2f4f7; stroke:#e2e6ec; stroke-width:1; }
+  .line  { stroke:#7a5cff; stroke-width:2; fill:none; }
+  .line2 { stroke:#98a2b0; stroke-width:1.6; fill:none; stroke-dasharray:5 4; }
+</style>
+<defs>
+  <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#7a5cff"/>
+  </marker>
+  <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#98a2b0"/>
+  </marker>
+  <marker id="c" markerWidth="9" markerHeight="9" refX="2" refY="4.5" orient="auto-start-reverse">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#7a5cff"/>
+  </marker>
+</defs>
+
+<rect width="980" height="660" class="bg"/>
+<text x="40" y="46" class="title">Arquitectura DESCENTRALIZADA</text>
+<text x="40" y="68" class="sub">Parachute S.A. — red de agentes pares que se transfieren el control (handoffs)</text>
+<path d="M614.0,187.0 L766.0,263.0" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M472.9375,187.0 L317.0625,273.0" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M526.0,187.0 L414.0,483.0" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M561.1428571428571,187.0 L718.8571428571429,463.0" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M276.42857142857144,347.0 L373.57142857142856,483.0" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M496.0,514.3529411764706 L644.0,505.6470588235294" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M821.5,337.0 L758.5,463.0" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M346.0,308.3728813559322 L744.0,301.6271186440678" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="450.0" y="119.0" width="180" height="62" rx="10" class="boxO"/>
+<text x="540.0" y="143.0" text-anchor="middle" class="name">Recepción</text>
+<text x="540.0" y="160.0" text-anchor="middle" class="role">Primer contacto</text>
+<rect x="750.0" y="269.0" width="180" height="62" rx="10" class="boxS"/>
+<text x="840.0" y="293.0" text-anchor="middle" class="name">FAQs</text>
+<text x="840.0" y="310.0" text-anchor="middle" class="role">Base de conocimiento</text>
+<rect x="650.0" y="469.0" width="180" height="62" rx="10" class="boxS"/>
+<text x="740.0" y="493.0" text-anchor="middle" class="name">Agenda</text>
+<text x="740.0" y="510.0" text-anchor="middle" class="role">Citas</text>
+<rect x="310.0" y="489.0" width="180" height="62" rx="10" class="boxS"/>
+<text x="400.0" y="513.0" text-anchor="middle" class="name">Seguridad</text>
+<text x="400.0" y="530.0" text-anchor="middle" class="role">Reglas de salto</text>
+<rect x="160.0" y="279.0" width="180" height="62" rx="10" class="boxS"/>
+<text x="250.0" y="303.0" text-anchor="middle" class="name">Clima</text>
+<text x="250.0" y="320.0" text-anchor="middle" class="role">Open-Meteo</text>
+<rect x="60" y="110" width="150" height="42" rx="10" class="boxU"/>
+<text x="135.0" y="136.0" text-anchor="middle" class="nameU">Usuario</text>
+<path d="M216.0,134.8 L459.0,146.2" class="line2" marker-end="url(#b)" marker-start="url(#c)"/>
+<text x="355" y="116" text-anchor="middle" class="note">el usuario entra por Recepción y luego conversa con el agente que tenga el control</text>
+<text x="700" y="205" text-anchor="middle" class="edge">handoff()</text>
+<text x="40" y="596" text-anchor="start" class="note">No existe coordinador: cada agente decide a qué par transferir la conversación y quien recibe el control responde al usuario.</text>
+<text x="40" y="618" text-anchor="start" class="note">Ventaja: menos saltos y prompts más cortos. Costo: nadie garantiza el orden clima → seguridad → agenda; es más difícil de auditar.</text>
+</svg>

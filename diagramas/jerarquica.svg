@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 660" width="980" height="660">
+
+<style>
+  .bg    { fill:#f7f8fa; }
+  .title { font:700 22px 'Helvetica Neue',Arial,sans-serif; fill:#11161d; }
+  .sub   { font:400 13px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .nameU { font:700 15px 'Helvetica Neue',Arial,sans-serif; fill:#ffffff; }
+  .name  { font:700 15px 'Helvetica Neue',Arial,sans-serif; fill:#11161d; }
+  .role  { font:400 12px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .tool  { font:400 11.5px 'Menlo',monospace; fill:#3d4854; }
+  .edge  { font:600 11px 'Helvetica Neue',Arial,sans-serif; fill:#7a5cff; }
+  .note  { font:400 12px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .lvl   { font:700 11px 'Helvetica Neue',Arial,sans-serif; fill:#98a2b0; letter-spacing:1px; }
+  .box   { fill:#ffffff; stroke:#d6dbe3; stroke-width:1.5; }
+  .boxU  { fill:#11161d; stroke:#11161d; }
+  .boxO  { fill:#efeaff; stroke:#7a5cff; stroke-width:2; }
+  .boxM  { fill:#e8f2ff; stroke:#2f7fe0; stroke-width:1.8; }
+  .boxS  { fill:#ffffff; stroke:#98a2b0; stroke-width:1.5; }
+  .boxT  { fill:#f2f4f7; stroke:#e2e6ec; stroke-width:1; }
+  .line  { stroke:#7a5cff; stroke-width:2; fill:none; }
+  .line2 { stroke:#98a2b0; stroke-width:1.6; fill:none; stroke-dasharray:5 4; }
+</style>
+<defs>
+  <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#7a5cff"/>
+  </marker>
+  <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#98a2b0"/>
+  </marker>
+  <marker id="c" markerWidth="9" markerHeight="9" refX="2" refY="4.5" orient="auto-start-reverse">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#7a5cff"/>
+  </marker>
+</defs>
+
+<rect width="980" height="660" class="bg"/>
+<text x="40" y="46" class="title">Arquitectura JERÁRQUICA</text>
+<text x="40" y="68" class="sub">Parachute S.A. — director → dos gerencias intermedias → cuatro especialistas (as_tool anidado)</text>
+<rect x="400" y="96" width="180" height="42" rx="10" class="boxU"/>
+<text x="490.0" y="122.0" text-anchor="middle" class="nameU">Usuario</text>
+<path d="M490,138 L490,166" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="330" y="168" width="320" height="64" rx="10" class="boxO"/>
+<text x="490.0" y="192" text-anchor="middle" class="name">Director de Operaciones</text>
+<text x="490.0" y="209" text-anchor="middle" class="role">Coordina gerencias, redacta la respuesta final</text>
+<text x="50" y="196" text-anchor="start" class="lvl">NIVEL 1</text>
+<text x="50" y="300" text-anchor="start" class="lvl">NIVEL 2</text>
+<text x="50" y="440" text-anchor="start" class="lvl">NIVEL 3</text>
+<path d="M490,232 V254.0 H300 V276" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<path d="M490,232 V254.0 H690 V276" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="150" y="278" width="300" height="62" rx="10" class="boxM"/>
+<text x="300.0" y="302" text-anchor="middle" class="name">Gerencia de Información</text>
+<text x="300.0" y="319" text-anchor="middle" class="role">Qué se sabe: conocimiento y datos</text>
+<rect x="540" y="278" width="300" height="62" rx="10" class="boxM"/>
+<text x="690.0" y="302" text-anchor="middle" class="name">Gerencia de Operaciones</text>
+<text x="690.0" y="319" text-anchor="middle" class="role">Qué se hace: dictamen y ejecución</text>
+<text x="560" y="246" text-anchor="middle" class="edge">as_tool()</text>
+<path d="M300,340 V373.0 H205 V406" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="120" y="408" width="170" height="64" rx="10" class="boxS"/>
+<text x="205.0" y="432" text-anchor="middle" class="name">Esp. FAQs</text>
+<text x="205.0" y="449" text-anchor="middle" class="role">Base de conocimiento</text>
+<text x="132" y="460" class="tool">consultar_faqs()</text>
+<path d="M300,340 V373.0 H395 V406" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="310" y="408" width="170" height="82" rx="10" class="boxS"/>
+<text x="395.0" y="432" text-anchor="middle" class="name">Esp. Clima</text>
+<text x="395.0" y="449" text-anchor="middle" class="role">Open-Meteo</text>
+<text x="322" y="463" class="tool">consultar_clima()</text>
+<text x="322" y="478" class="tool">fecha_actual()</text>
+<path d="M690,340 V373.0 H605 V406" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="520" y="408" width="170" height="82" rx="10" class="boxS"/>
+<text x="605.0" y="432" text-anchor="middle" class="name">Esp. Seguridad</text>
+<text x="605.0" y="449" text-anchor="middle" class="role">Reglas de salto</text>
+<text x="532" y="463" class="tool">evaluar_condiciones()</text>
+<text x="532" y="478" class="tool">evaluar_fecha()</text>
+<path d="M690,340 V373.0 H795 V406" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="710" y="408" width="170" height="100" rx="10" class="boxS"/>
+<text x="795.0" y="432" text-anchor="middle" class="name">Esp. Agenda</text>
+<text x="795.0" y="449" text-anchor="middle" class="role">Citas</text>
+<text x="722" y="466" class="tool">consultar_horarios()</text>
+<text x="722" y="481" class="tool">agendar_cita()</text>
+<text x="722" y="496" class="tool">listar_citas()</text>
+<text x="40" y="596" text-anchor="start" class="note">El director no toca ninguna integración: delega en gerencias y cada gerencia delega en sus especialistas.</text>
+<text x="40" y="618" text-anchor="start" class="note">Ventaja: escala sin tocar la cima al crecer los requerimientos. Costo: más saltos, más latencia y más tokens.</text>
+</svg>

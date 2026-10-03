@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+#
+# Hoja de trabajo #6 — Evals del agente de Parachute S.A. (CC3116)
+#
+# Sistema evaluado: arquitectura CENTRALIZADA (centralizada.py), la que en la
+# HT5 se eligió como la mejor para el alcance actual.
+#
+# Tipos de eval (cada aserción lleva su `metric` para agruparlas en el reporte):
+#   - factuality      -> model-graded: la respuesta es consistente con la FAQ de referencia
+#   - fidelidad_rag   -> model-graded: context-faithfulness contra lo que recuperó consultar_faqs
+#   - comportamiento  -> llm-rubric para casos sin una respuesta única (rechazos, "no sé")
+#   - deterministico  -> contains / icontains / regex / not-*
+#   - latencia        -> latency (requiere --no-cache)
+#   - tool_execution  -> javascript sobre la traza de herramientas que devuelve el provider
+#
+# Ejecutar desde la raíz del repositorio:
+#   npx promptfoo@latest eval -c evals/promptfooconfig.yaml --no-cache \
+#       -o evals/reporte/reporte.html -o evals/reporte/resultados.json
+#   npx promptfoo@latest view
+
+description: "Parachute S.A. — evals del agente (FAQs + agenda), arquitectura centralizada"
+
+prompts:
+  - "{{query}}"
+
+providers:
+  - id: file://provider.py
+    label: parachute-centralizada
+    config:
+      # Una sola instancia: el provider fija clima y archivo de citas por caso.
+      workers: 1
+      timeout: 240000
+
+evaluateOptions:
+  maxConcurrency: 1
+  delay: 1500 # ms entre casos, para no topar el rate limit del proveedor
+
+defaultTest:
+  options:
+    # Grader de las aserciones model-graded (factuality, context-faithfulness,
+    # llm-rubric). Usa el mismo proveedor compatible con OpenAI del agente (.env).
+    provider:
+      id: "openai:chat:{{ env.GRADER_MODEL or env.MODEL_NAME or 'openai/gpt-oss-120b' }}"
+      config:
+        apiBaseUrl: "{{ env.BASE_URL or 'https://api.groq.com/openai/v1' }}"
+        apiKeyEnvar: API_KEY
+        temperature: 0
+  assert:
+    # En todos los casos: ninguna herramienta debe fallar por argumentos mal formados
+    # (las de agenda/clima pueden fallar a propósito por reglas de negocio).
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:sinErrores
+      config:
+        permitidas: [agendar_cita, consultar_clima, evaluar_fecha, cancelar_cita]
+    # La respuesta nunca debe salir vacía ni con el error del runner.
+    - type: regex
+      metric: deterministico
+      value: "\\S{3,}"
+    - type: not-icontains
+      metric: deterministico
+      value: "Traceback"
+
+tests:
+  - file://tests/faqs.yaml
+  - file://tests/agenda.yaml

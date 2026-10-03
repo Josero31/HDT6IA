@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 660" width="980" height="660">
+
+<style>
+  .bg    { fill:#f7f8fa; }
+  .title { font:700 22px 'Helvetica Neue',Arial,sans-serif; fill:#11161d; }
+  .sub   { font:400 13px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .nameU { font:700 15px 'Helvetica Neue',Arial,sans-serif; fill:#ffffff; }
+  .name  { font:700 15px 'Helvetica Neue',Arial,sans-serif; fill:#11161d; }
+  .role  { font:400 12px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .tool  { font:400 11.5px 'Menlo',monospace; fill:#3d4854; }
+  .edge  { font:600 11px 'Helvetica Neue',Arial,sans-serif; fill:#7a5cff; }
+  .note  { font:400 12px 'Helvetica Neue',Arial,sans-serif; fill:#5c6672; }
+  .lvl   { font:700 11px 'Helvetica Neue',Arial,sans-serif; fill:#98a2b0; letter-spacing:1px; }
+  .box   { fill:#ffffff; stroke:#d6dbe3; stroke-width:1.5; }
+  .boxU  { fill:#11161d; stroke:#11161d; }
+  .boxO  { fill:#efeaff; stroke:#7a5cff; stroke-width:2; }
+  .boxM  { fill:#e8f2ff; stroke:#2f7fe0; stroke-width:1.8; }
+  .boxS  { fill:#ffffff; stroke:#98a2b0; stroke-width:1.5; }
+  .boxT  { fill:#f2f4f7; stroke:#e2e6ec; stroke-width:1; }
+  .line  { stroke:#7a5cff; stroke-width:2; fill:none; }
+  .line2 { stroke:#98a2b0; stroke-width:1.6; fill:none; stroke-dasharray:5 4; }
+</style>
+<defs>
+  <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#7a5cff"/>
+  </marker>
+  <marker id="b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#98a2b0"/>
+  </marker>
+  <marker id="c" markerWidth="9" markerHeight="9" refX="2" refY="4.5" orient="auto-start-reverse">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="#7a5cff"/>
+  </marker>
+</defs>
+
+<rect width="980" height="660" class="bg"/>
+<text x="40" y="46" class="title">Arquitectura CENTRALIZADA</text>
+<text x="40" y="68" class="sub">Parachute S.A. — un orquestador, cuatro agentes expuestos como herramientas (agents-as-tools)</text>
+<rect x="400" y="96" width="180" height="42" rx="10" class="boxU"/>
+<text x="490.0" y="122.0" text-anchor="middle" class="nameU">Usuario</text>
+<path d="M490,138 L490,172" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="300" y="174" width="380" height="74" rx="10" class="boxO"/>
+<text x="490.0" y="198" text-anchor="middle" class="name">Orquestador central</text>
+<text x="490.0" y="215" text-anchor="middle" class="role">Único punto de decisión y única voz hacia el usuario</text>
+<path d="M490,248 V296.0 H130 V344" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="40" y="346" width="180" height="64" rx="10" class="boxS"/>
+<text x="130.0" y="370" text-anchor="middle" class="name">Especialista FAQs</text>
+<text x="130.0" y="387" text-anchor="middle" class="role">Base de conocimiento</text>
+<text x="52" y="398" class="tool">consultar_faqs()</text>
+<path d="M490,248 V296.0 H370 V344" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="280" y="346" width="180" height="82" rx="10" class="boxS"/>
+<text x="370.0" y="370" text-anchor="middle" class="name">Especialista Clima</text>
+<text x="370.0" y="387" text-anchor="middle" class="role">Open-Meteo</text>
+<text x="292" y="401" class="tool">consultar_clima()</text>
+<text x="292" y="416" class="tool">fecha_actual()</text>
+<path d="M490,248 V296.0 H610 V344" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="520" y="346" width="180" height="82" rx="10" class="boxS"/>
+<text x="610.0" y="370" text-anchor="middle" class="name">Oficial de Seguridad</text>
+<text x="610.0" y="387" text-anchor="middle" class="role">Reglas de salto</text>
+<text x="532" y="401" class="tool">evaluar_condiciones()</text>
+<text x="532" y="416" class="tool">evaluar_fecha()</text>
+<path d="M490,248 V296.0 H850 V344" class="line" marker-end="url(#a)" marker-start="url(#c)"/>
+<rect x="760" y="346" width="180" height="100" rx="10" class="boxS"/>
+<text x="850.0" y="370" text-anchor="middle" class="name">Especialista Agenda</text>
+<text x="850.0" y="387" text-anchor="middle" class="role">Citas</text>
+<text x="772" y="404" class="tool">consultar_horarios()</text>
+<text x="772" y="419" class="tool">agendar_cita()</text>
+<text x="772" y="434" class="tool">listar_citas()</text>
+<text x="660" y="288" text-anchor="middle" class="edge">as_tool()</text>
+<text x="40" y="596" text-anchor="start" class="note">El orquestador invoca a cada especialista como si fuera una función: la salida vuelve al orquestador, nunca al usuario.</text>
+<text x="40" y="618" text-anchor="start" class="note">Ventaja: control total del flujo y una sola respuesta coherente. Costo: todo el contexto pasa por un solo agente.</text>
+</svg>

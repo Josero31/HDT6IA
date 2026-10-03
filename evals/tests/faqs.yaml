@@ -1,0 +1,218 @@
+# ---------------------------------------------------------------------------
+# Funcionalidad 1: PREGUNTAS FRECUENTES (RAG sobre data/faqs.md)
+#
+# Cada caso combina:
+#   factuality      -> la respuesta coincide con la respuesta de referencia de la FAQ
+#   fidelidad_rag   -> la respuesta se sostiene en el contexto que devolvió consultar_faqs
+#   deterministico  -> cifras/palabras clave exactas (contains / regex)
+#   tool_execution  -> el orquestador usó consultar_informacion -> consultar_faqs
+#                      y NO tocó agenda ni clima
+#   latencia        -> tiempo de respuesta máximo para una consulta informativa
+# ---------------------------------------------------------------------------
+
+- description: "FAQ · Precio del salto tándem"
+  vars:
+    query: "¿Cuánto cuesta un salto tándem y qué incluye?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "El salto tándem cuesta Q2,200 e incluye equipo, instructor certificado, seguro y traslado desde el punto de reunión."
+    - type: context-faithfulness
+      metric: fidelidad_rag
+      contextTransform: "context.metadata.contexto_recuperado"
+      threshold: 0.7
+    - type: regex
+      metric: deterministico
+      value: "Q\\s?2[,.]?200"
+    - type: icontains-all
+      metric: deterministico
+      value: ["instructor", "seguro"]
+    - &faq_tool_orq
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: consultar_informacion, nivel: orquestador }
+    - &faq_tool_rag
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: consultar_faqs, nivel: especialista, args: { pregunta: "re:\\S+" } }
+    - &faq_sin_agenda
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:noLlamada
+      config: { tool: gestionar_agenda }
+    - &faq_latencia
+      type: latency
+      metric: latencia
+      threshold: 20000
+
+- description: "FAQ · Requisitos de edad y peso"
+  vars:
+    query: "¿Hay un límite de edad o de peso para saltar?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "La edad mínima es 18 años con identificación vigente; los menores no pueden saltar ni con permiso de sus padres. El peso máximo es 100 kg y entre 95 y 100 kg hay un recargo de Q250."
+    - type: context-faithfulness
+      metric: fidelidad_rag
+      contextTransform: "context.metadata.contexto_recuperado"
+      threshold: 0.7
+    - type: regex
+      metric: deterministico
+      value: "\\b18\\b"
+    - type: regex
+      metric: deterministico
+      value: "100\\s?kg"
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Política de cancelación y reembolso"
+  vars:
+    query: "Si cancelo mi reserva, ¿me devuelven el dinero?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "Con más de 48 horas de anticipación el reembolso es completo; entre 48 y 24 horas se reembolsa el 50%; con menos de 24 horas o si no se presenta no hay reembolso, aunque la reserva puede transferirse una vez a otra persona o fecha dentro de 90 días."
+    - type: context-faithfulness
+      metric: fidelidad_rag
+      contextTransform: "context.metadata.contexto_recuperado"
+      threshold: 0.7
+    - type: regex
+      metric: deterministico
+      value: "48\\s?h"
+    - type: icontains
+      metric: deterministico
+      value: "50"
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Qué llevar el día del salto"
+  vars:
+    query: "¿Qué tengo que llevar el día del salto? ¿Puedo ir en sandalias?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "Hay que llevar identificación vigente, ropa cómoda y deportiva y zapatos cerrados con cordones amarrados. No se permiten sandalias."
+    - type: icontains-any
+      metric: deterministico
+      value: ["zapatos cerrados", "calzado cerrado"]
+    - type: icontains-any
+      metric: deterministico
+      value: ["identificación", "identificacion", "DPI", "documento"]
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Restricción médica (embarazo)"
+  vars:
+    query: "Estoy embarazada de 3 meses, ¿puedo hacer el salto tándem?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "No. Las mujeres embarazadas no pueden saltar."
+    - type: context-faithfulness
+      metric: fidelidad_rag
+      contextTransform: "context.metadata.contexto_recuperado"
+      threshold: 0.7
+    - type: regex
+      metric: deterministico
+      value: "\\b[Nn][Oo]\\b"
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Altura del salto y recargo de 14,000 pies"
+  vars:
+    query: "¿Desde qué altura se salta? ¿Se puede más alto?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "El tándem estándar se hace desde 10,000 pies (unos 3,050 m). Existe la opción de 14,000 pies con un recargo de Q600, sujeta a disponibilidad de la avioneta."
+    - type: regex
+      metric: deterministico
+      value: "10[,.]?000"
+    - type: regex
+      metric: deterministico
+      value: "14[,.]?000"
+    - type: regex
+      metric: deterministico
+      value: "Q\\s?600"
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Celular o cámara durante el salto"
+  vars:
+    query: "¿Puedo llevar mi celular para grabar el salto?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "No. Por seguridad está prohibido llevar cámaras o celulares; el video lo hace un camarógrafo certificado de la empresa."
+    - type: icontains-any
+      metric: deterministico
+      value: ["camarógrafo", "camarografo", "paquete con video", "video"]
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Menor de edad con permiso de los padres"
+  vars:
+    query: "Mi hijo tiene 16 años y yo le doy permiso firmado, ¿puede saltar?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "No. La edad mínima es 18 años y los menores no pueden saltar aunque tengan autorización de sus padres."
+    - type: regex
+      metric: deterministico
+      value: "\\b18\\b"
+    - type: not-icontains
+      metric: deterministico
+      value: "sí puede"
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Certificación de los instructores"
+  vars:
+    query: "¿Qué experiencia tienen los instructores?"
+  assert:
+    - type: factuality
+      metric: factuality
+      value: "Todos los instructores tienen certificación USPA vigente y un mínimo de 500 saltos tándem registrados."
+    - type: icontains
+      metric: deterministico
+      value: "USPA"
+    - type: icontains
+      metric: deterministico
+      value: "500"
+    - *faq_tool_orq
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia
+
+- description: "FAQ · Pregunta fuera de la base (no debe inventar)"
+  vars:
+    query: "¿Aceptan pagos con bitcoin?"
+  assert:
+    - type: llm-rubric
+      metric: comportamiento
+      value: >-
+        La respuesta indica que no tiene esa información (o que la base de conocimiento no
+        la incluye) y/o remite a un asesor. NO afirma que aceptan ni que rechazan bitcoin
+        ni inventa métodos de pago.
+    - type: not-regex
+      metric: deterministico
+      value: "[Ss][IiÍí],?\\s+aceptamos"
+    - *faq_tool_rag
+    - *faq_sin_agenda
+    - *faq_latencia

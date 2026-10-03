@@ -1,0 +1,293 @@
+# ---------------------------------------------------------------------------
+# Funcionalidad 2: AGENDAR CITAS (clima -> seguridad -> agenda)
+#
+# El clima se fija con la variable `clima` (ideal | marginal | prohibido) para
+# que el veredicto sea reproducible: el provider reemplaza Open-Meteo por un
+# escenario conocido, pero conserva la validación real de la ventana de 16 días.
+# `[HOY+N]` se reemplaza por la fecha ISO de hoy + N días.
+# `citas_previas` precarga la agenda temporal de ese caso.
+#
+#   tool_execution  -> qué herramientas se llamaron, con qué argumentos, en qué
+#                      orden y cuál fue el efecto real sobre la agenda
+#   deterministico  -> hora, ID de cita, palabras clave del veredicto
+#   factuality      -> la respuesta es consistente con el resultado esperado
+#   latencia        -> tiempo máximo para un flujo completo de agenda
+# ---------------------------------------------------------------------------
+
+- description: "Agenda · Día IDEAL con todos los datos -> se registra la cita"
+  vars:
+    clima: ideal
+    query: "Quiero agendar un salto tándem para el [HOY+3] a las 08:30. Soy Ana López, mi teléfono es 5555-5555."
+  assert:
+    # --- tool execution: orquestador ---
+    - &agenda_orq_llama_agenda
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: gestionar_agenda, nivel: orquestador }
+    - &agenda_orq_orden
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:orden
+      config: { antes: [consultar_pronostico, dictaminar_seguridad], despues: gestionar_agenda }
+    # --- tool execution: especialistas ---
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: [consultar_clima, evaluar_fecha], args: { fecha: "[HOY+3]" } }
+    - &agenda_dictamen
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: [evaluar_fecha, evaluar_condiciones] }
+    - &agenda_orden_dictamen
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:orden
+      config: { antes: [evaluar_fecha, evaluar_condiciones, consultar_clima], despues: agendar_cita }
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config:
+        tool: agendar_cita
+        exitosa: true
+        max: 1
+        args:
+          nombre: "re:ana\\s+l[oó]pez"
+          telefono: "re:5555-?\\s?5555"
+          fecha: "[HOY+3]"
+          hora: "08:30"
+          nivel_clima: IDEAL
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:citas
+      config: { cantidad: 1, con: { fecha: "[HOY+3]", hora: "08:30", nivel_clima: IDEAL } }
+    # --- determinísticos ---
+    - type: javascript
+      metric: deterministico
+      value: file://assertions/herramientas.js:idEnRespuesta
+    - type: contains
+      metric: deterministico
+      value: "08:30"
+    - type: icontains
+      metric: deterministico
+      value: "ideal"
+    # --- factuality ---
+    - type: factuality
+      metric: factuality
+      value: "La cita de Ana López quedó registrada a las 08:30 porque las condiciones meteorológicas de ese día son IDEALES; se le entrega un identificador de cita."
+    - &agenda_latencia
+      type: latency
+      metric: latencia
+      threshold: 45000
+
+- description: "Agenda · Día MARGINAL -> se registra con advertencia de tándem"
+  vars:
+    clima: marginal
+    query: "Agéndame para el [HOY+5] a las 10:00. Me llamo Carlos Pérez, tel 4444-1234."
+  assert:
+    - *agenda_orq_llama_agenda
+    - *agenda_orq_orden
+    - *agenda_dictamen
+    - *agenda_orden_dictamen
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config:
+        tool: agendar_cita
+        exitosa: true
+        max: 1
+        args: { fecha: "[HOY+5]", hora: "10:00", nivel_clima: MARGINAL, telefono: "re:4444-?\\s?1234" }
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:citas
+      config: { cantidad: 1, con: { hora: "10:00", nivel_clima: MARGINAL } }
+    - type: javascript
+      metric: deterministico
+      value: file://assertions/herramientas.js:idEnRespuesta
+    - type: icontains
+      metric: deterministico
+      value: "marginal"
+    - type: icontains-all
+      metric: deterministico
+      value: ["tándem", "instructor"]
+    - type: factuality
+      metric: factuality
+      value: "La cita quedó registrada a las 10:00, pero las condiciones son MARGINALES, por lo que solo se autoriza salto tándem con instructor experimentado."
+    - *agenda_latencia
+
+- description: "Agenda · Día PROHIBIDO -> NO se agenda y se ofrece otra fecha"
+  vars:
+    clima: prohibido
+    query: "Quiero saltar el [HOY+2] a las 07:00. Soy María Gómez, 3333-2222."
+  assert:
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: [consultar_clima, evaluar_fecha], args: { fecha: "[HOY+2]" } }
+    - *agenda_dictamen
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:noLlamada
+      config: { tool: agendar_cita, exitosa: true }
+    - &sin_citas
+      type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:citas
+      config: { cantidad: 0 }
+    - type: icontains-any
+      metric: deterministico
+      value: ["prohibido", "no es seguro", "no seguro", "no se puede", "no podemos", "no es posible"]
+    - type: not-regex
+      metric: deterministico
+      value: "(cita|reserva) (qued[oó] )?(registrada|confirmada|agendada)"
+    - type: factuality
+      metric: factuality
+      value: "No se puede agendar ese día porque las condiciones meteorológicas son PROHIBIDAS (lluvia, viento y ráfagas fuera de los límites y nubosidad alta). Se sugiere elegir otra fecha dentro de la ventana de pronóstico."
+    - *agenda_latencia
+
+- description: "Agenda · Fecha fuera de la ventana de 16 días -> corrige con la fecha máxima"
+  vars:
+    clima: ideal
+    query: "Agéndame para el [HOY+40] a las 08:30, soy Luis Ramírez, 5555-0000."
+  assert:
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:noLlamada
+      config: { tool: agendar_cita, exitosa: true }
+    - *sin_citas
+    - type: javascript
+      metric: deterministico
+      value: file://assertions/herramientas.js:mencionaFecha
+      config: { fecha: "[HOY+16]" }
+    - type: icontains
+      metric: deterministico
+      value: "16"
+    - type: factuality
+      metric: factuality
+      value: "No es posible agendar esa fecha porque el pronóstico solo llega a 16 días; la fecha máxima que se puede evaluar hoy es la de dentro de 16 días."
+    - *agenda_latencia
+
+- description: "Agenda · Falta el teléfono -> lo pide y no registra"
+  vars:
+    clima: ideal
+    query: "Quiero reservar para el [HOY+4] a las 11:30, soy Sofía Méndez."
+  assert:
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:noLlamada
+      config: { tool: agendar_cita }
+    - *sin_citas
+    - type: icontains-any
+      metric: deterministico
+      value: ["teléfono", "telefono", "número de contacto", "numero de contacto"]
+    - type: llm-rubric
+      metric: comportamiento
+      value: "La respuesta le pide al cliente su número de teléfono antes de confirmar y NO afirma que la cita ya quedó registrada."
+    - *agenda_latencia
+
+- description: "Agenda · Horario ocupado -> no duplica y ofrece horarios libres"
+  vars:
+    clima: ideal
+    citas_previas:
+      - { id: "AAAA1111", nombre: "Cliente Previo", telefono: "1111-1111", fecha: "[HOY+3]", hora: "08:30", nivel_clima: "IDEAL", creada_en: "2026-01-01T00:00:00" }
+    query: "Agéndame el [HOY+3] a las 08:30, soy Pedro Castillo, 2222-3333."
+  assert:
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: consultar_horarios, min: 0 }
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:citas
+      config: { cantidad: 1, sinDuplicados: true, con: { id: "AAAA1111" } }
+    - type: icontains-any
+      metric: deterministico
+      value: ["ocupado", "no está disponible", "no esta disponible", "ya está tomado", "no disponible"]
+    - type: regex
+      metric: deterministico
+      value: "07:00|10:00|11:30|14:00|15:30"
+    - type: factuality
+      metric: factuality
+      value: "El horario de las 08:30 de ese día ya está ocupado; no se registra la cita y se ofrecen los horarios libres (07:00, 10:00, 11:30, 14:00 y 15:30)."
+    - *agenda_latencia
+
+- description: "Agenda · Horario inválido -> ofrece los horarios oficiales"
+  vars:
+    clima: ideal
+    query: "Quiero saltar el [HOY+6] a las 09:00. Soy Diego Herrera, 7777-8888."
+  assert:
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:citas
+      config: { cantidad: 0 }
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:noLlamada
+      config: { tool: agendar_cita, exitosa: true }
+    - type: regex
+      metric: deterministico
+      value: "08:30|10:00"
+    - type: llm-rubric
+      metric: comportamiento
+      value: "La respuesta explica que las 09:00 no es un horario disponible, ofrece horarios válidos (07:00, 08:30, 10:00, 11:30, 14:00, 15:30) y no confirma ninguna cita."
+    - *agenda_latencia
+
+- description: "Agenda · Cancelar una cita existente"
+  vars:
+    clima: ideal
+    citas_previas:
+      - { id: "C4NC3L01", nombre: "Ana López", telefono: "5555-5555", fecha: "[HOY+3]", hora: "07:00", nivel_clima: "IDEAL", creada_en: "2026-01-01T00:00:00" }
+    query: "Por favor cancela mi cita con código C4NC3L01."
+  assert:
+    - *agenda_orq_llama_agenda
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: cancelar_cita, exitosa: true, args: { id_cita: "re:^c4nc3l01$" } }
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:noLlamada
+      config: { tool: agendar_cita }
+    - *sin_citas
+    - type: icontains
+      metric: deterministico
+      value: "cancelada"
+    - type: icontains
+      metric: deterministico
+      value: "C4NC3L01"
+    - type: factuality
+      metric: factuality
+      value: "La cita C4NC3L01 fue cancelada."
+    - type: latency
+      metric: latencia
+      threshold: 30000
+
+- description: "Mixto · FAQ + agenda en un solo mensaje (ambas funcionalidades)"
+  vars:
+    clima: ideal
+    query: "¿Cuánto cuesta el tándem con video? Y de una vez agéndame para el [HOY+7] a las 07:00, soy Laura Ruiz, 6666-1212."
+  assert:
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: consultar_informacion, nivel: orquestador }
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: consultar_faqs }
+    - *agenda_orq_llama_agenda
+    - type: javascript
+      metric: tool_execution
+      value: file://assertions/herramientas.js:llamada
+      config: { tool: agendar_cita, exitosa: true, max: 1, args: { fecha: "[HOY+7]", hora: "07:00", nivel_clima: IDEAL } }
+    - type: regex
+      metric: deterministico
+      value: "Q\\s?2[,.]?850"
+    - type: javascript
+      metric: deterministico
+      value: file://assertions/herramientas.js:idEnRespuesta
+    - type: factuality
+      metric: factuality
+      value: "El paquete tándem con video y fotografías cuesta Q2,850, y la cita de Laura Ruiz quedó registrada a las 07:00 con condiciones IDEALES."
+    - *agenda_latencia
