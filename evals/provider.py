@@ -55,7 +55,7 @@ from core.config import LATITUD, LONGITUD  # noqa: E402
 import centralizada  # noqa: E402
 
 MAX_TURNOS = 20
-MAX_REINTENTOS = 4
+MAX_REINTENTOS = 5
 
 # --------------------------------------------------------------------------
 # Fechas relativas
@@ -175,6 +175,30 @@ def _es_rate_limit(exc: Exception) -> bool:
     return "ratelimit" in texto or "rate limit" in texto or "429" in texto
 
 
+def _es_tool_call_invalida(exc: Exception) -> bool:
+    """gpt-oss en Groq a veces emite una llamada de herramienta mal formada
+    (nombre con tokens '<|channel|>...' o sin el parámetro 'input'). Groq la
+    rechaza con un 400 antes de que llegue al agente; repetir la petición suele
+    bastar porque el modelo no es determinístico."""
+    texto = f"{type(exc).__name__} {exc}".lower()
+    return "tool call validation failed" in texto or "tool_use_failed" in texto
+
+
+# Un único event loop para todas las llamadas del worker de promptfoo. El cliente
+# AsyncOpenAI de core/config.py es global y queda ligado al loop donde se creó;
+# con asyncio.run() se cerraba el loop al terminar cada caso y el siguiente
+# fallaba con "RuntimeError: Event loop is closed".
+_LOOP: asyncio.AbstractEventLoop | None = None
+
+
+def _loop() -> asyncio.AbstractEventLoop:
+    global _LOOP
+    if _LOOP is None or _LOOP.is_closed():
+        _LOOP = asyncio.new_event_loop()
+        asyncio.set_event_loop(_LOOP)
+    return _LOOP
+
+
 async def _ejecutar(pregunta: str) -> tuple[Any, list[dict], float, int]:
     intentos = 0
     while True:
@@ -194,9 +218,13 @@ async def _ejecutar(pregunta: str) -> tuple[Any, list[dict], float, int]:
             )
             return resultado, traza, (time.perf_counter() - inicio) * 1000, intentos
         except Exception as exc:  # noqa: BLE001
-            if _es_rate_limit(exc) and intentos < MAX_REINTENTOS:
-                await asyncio.sleep(10 * intentos)
-                continue
+            if intentos < MAX_REINTENTOS:
+                if _es_rate_limit(exc):
+                    await asyncio.sleep(10 * intentos)
+                    continue
+                if _es_tool_call_invalida(exc):
+                    await asyncio.sleep(2)
+                    continue
             raise
 
 
@@ -221,7 +249,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
         scheduling.RUTA_CITAS = ruta
 
         try:
-            resultado, traza, latencia_ms, intentos = asyncio.run(_ejecutar(pregunta))
+            resultado, traza, latencia_ms, intentos = _loop().run_until_complete(_ejecutar(pregunta))
         except Exception as exc:  # noqa: BLE001
             return {"error": f"{type(exc).__name__}: {exc}"}
 

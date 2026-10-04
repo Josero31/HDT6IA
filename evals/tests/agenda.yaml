@@ -283,7 +283,7 @@
       config: { tool: agendar_cita, exitosa: true, max: 1, args: { fecha: "[HOY+7]", hora: "07:00", nivel_clima: IDEAL } }
     - type: regex
       metric: deterministico
-      value: "Q\\s?2[,.]?850"
+      value: "Q\\s?2[,.\\s]?850"
     - type: javascript
       metric: deterministico
       value: file://assertions/herramientas.js:idEnRespuesta
